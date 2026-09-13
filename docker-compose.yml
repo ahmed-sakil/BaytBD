@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: baytbd-web
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:baytbd_secure_password@postgres:5432/baytbd?sslmode=disable
+      - JWT_SECRET=baytbd_production_secret_key_change_me_in_env_file
+      - JWT_EXPIRES_IN=7d
+      - FRONTEND_URL=https://baytbd.com,https://www.baytbd.com,http://localhost:5000
+      - CLOUDINARY_CLOUD_NAME=zagrmuva
+      - CLOUDINARY_API_KEY=892572139489195
+      - CLOUDINARY_API_SECRET=7ZRdyUJdt4Aj98G_HnR28uYnM7c
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: baytbd-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: baytbd_secure_password
+      POSTGRES_DB: baytbd
+    volumes:
+      - baytbd_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d baytbd"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  baytbd_pgdata:

@@ -1,0 +1,17 @@
+{
+  "name": "baytbd-group",
+  "version": "1.0.0",
+  "description": "BaytBD Group of Companies - Corporate, Agro, Development & IT Platform",
+  "scripts": {
+    "db:start": "/usr/lib/postgresql/16/bin/pg_ctl -D .pgdata -o \"-k /home/sakil/Desktop/baytbd/.pgsocket -p 5433\" -l .pgdata/logfile start",
+    "db:stop": "/usr/lib/postgresql/16/bin/pg_ctl -D .pgdata stop",
+    "db:status": "/usr/lib/postgresql/16/bin/pg_isready -h /home/sakil/Desktop/baytbd/.pgsocket -p 5433",
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm run dev",
+    "build:frontend": "npm run build --prefix frontend",
+    "build:backend": "npm run build --prefix backend",
+    "build": "npm run build:frontend && npm run build:backend",
+    "start": "node backend/dist/server.js",
+    "seed": "cd backend && npm run prisma:seed"
+  }
+}
