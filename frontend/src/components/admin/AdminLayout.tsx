@@ -341,6 +341,8 @@ export const AdminLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const headerInfo = getHeaderInfo(location.pathname);
+  usePageTitle(headerInfo.title);
 
   // If auth is still validating
   if (isLoading) {
@@ -366,9 +368,6 @@ export const AdminLayout: React.FC = () => {
     });
     navigate('/admin/login', { replace: true });
   };
-
-  const headerInfo = getHeaderInfo(location.pathname);
-  usePageTitle(headerInfo.title);
 
   return (
     <div className="min-h-screen bg-slate-100/70 flex">
