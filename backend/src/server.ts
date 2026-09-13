@@ -16,27 +16,11 @@ const PORT = process.env.PORT || 5000;
 // Trust reverse proxies (e.g. Nginx, Cloudflare, AWS ALB, Render, Railway)
 app.set('trust proxy', 1);
 
-// Flexible multi-origin CORS configuration
-const allowedOrigins: string[] = (process.env.FRONTEND_URL || 'http://localhost:5173,http://127.0.0.1:5173')
-  .split(',')
-  .map((url: string) => url.trim())
-  .filter(Boolean);
-
+// Permissive multi-origin CORS configuration with credentials support
 app.use(cors({
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // Allow non-browser requests (Postman, curl, internal microservices)
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
-      return callback(null, true);
-    }
-
-    // In non-production, allow any local interface
-    if (process.env.NODE_ENV !== 'production' && (origin.includes('localhost') || origin.includes('127.0.0.1'))) {
-      return callback(null, true);
-    }
-
-    return callback(new Error(`CORS policy violation: Origin ${origin} not permitted.`));
+    // Dynamically reflect origin to allow Vercel, custom domains, and local interfaces
+    callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -47,17 +31,20 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
-// API Routes
-app.use('/api', routes);
-
-// Health Check
-app.get('/api/health', (req: Request, res: Response) => {
+// Health Check endpoints
+const healthCheck = (req: Request, res: Response) => {
   res.json({
     status: 'online',
     timestamp: new Date().toISOString(),
     organization: 'BaytBD Group of Companies',
   });
-});
+};
+app.get('/health', healthCheck);
+app.get('/api/health', healthCheck);
+
+// API Routes (Mounted under /api and root for seamless client compatibility)
+app.use('/api', routes);
+app.use(routes);
 
 // Serve frontend static build if available
 const frontendDist = process.env.FRONTEND_DIST_PATH || path.resolve(__dirname, '../../frontend/dist');
