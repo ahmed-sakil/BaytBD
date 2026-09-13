@@ -1,9 +1,10 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import fs from 'fs';
 import routes from './routes';
 import { errorHandler } from './middlewares/error.middleware';
 
@@ -16,13 +17,13 @@ const PORT = process.env.PORT || 5000;
 app.set('trust proxy', 1);
 
 // Flexible multi-origin CORS configuration
-const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173,http://127.0.0.1:5173')
+const allowedOrigins: string[] = (process.env.FRONTEND_URL || 'http://localhost:5173,http://127.0.0.1:5173')
   .split(',')
-  .map((url) => url.trim())
+  .map((url: string) => url.trim())
   .filter(Boolean);
 
 app.use(cors({
-  origin: (origin, callback) => {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Allow non-browser requests (Postman, curl, internal microservices)
     if (!origin) return callback(null, true);
 
@@ -50,7 +51,7 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use('/api', routes);
 
 // Health Check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req: Request, res: Response) => {
   res.json({
     status: 'online',
     timestamp: new Date().toISOString(),
@@ -58,15 +59,13 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-import fs from 'fs';
-
 // Serve frontend static build if available
 const frontendDist = process.env.FRONTEND_DIST_PATH || path.resolve(__dirname, '../../frontend/dist');
 if (fs.existsSync(frontendDist)) {
   app.use(express.static(frontendDist));
 }
 
-app.get('*', (req, res, next) => {
+app.get('*', (req: Request, res: Response, next: NextFunction) => {
   if (req.path.startsWith('/api')) {
     return next();
   }

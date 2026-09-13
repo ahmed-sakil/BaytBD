@@ -32,7 +32,7 @@ export const uploadImage = async (
         }
       );
 
-      stream.end(file.buffer);
+      (stream as any).end(file.buffer);
     });
 
     return res.status(200).json({

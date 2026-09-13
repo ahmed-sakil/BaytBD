@@ -143,7 +143,7 @@ export const updateUser = async (req: AuthRequest, res: Response, next: NextFunc
     }
 
     // Prevent changing own role if requester is logged-in user
-    if (req.user?.id === id && data.role && data.role !== req.user.role) {
+    if (req.user && req.user.id === id && data.role && data.role !== req.user.role) {
       return res.status(400).json({
         success: false,
         message: 'You cannot alter your own administrative role.',
